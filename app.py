@@ -144,7 +144,7 @@ elif st.session_state.step >= 2:
                 
                 # 根据当前步骤展示采分点或完整答案
                 if st.session_state.step == 2:
-                    st.success(sq.get('scoring_points', '暂无采分点说明'))
+                    st.markdown(sq.get('scoring_points', '暂无采分点说明'), unsafe_allow_html=True)
                 elif st.session_state.step == 3:
                     st.markdown(sq.get('reference_answer', '暂无参考答案'), unsafe_allow_html=True)
 
