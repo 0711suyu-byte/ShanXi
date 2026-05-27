@@ -1,0 +1,33 @@
+﻿{
+    "id": "生态_02",
+    "title": "02. 黄河流域生态保护与高质量发展",
+    "category": "生态类",
+    "materials_plain": "【材料一】陕北及关中部分地区作为黄河流域的核心辐射区，承担着极其繁重的水土保持与污染防治任务。近年来，全省大力推进干支流综合治理，水质实现了阶段性跃升。但该流域同样是省内重化工产业密集区。随着国家对水资源实行极其严格的刚性约束机制，该区域正遭遇发展瓶颈：脆弱的生态承载力与地方对高耗水、高排放传统税源产业的重度依赖形成了尖锐对立。如何斩断粗放型用水链条，推动重化工产业向低碳化、高端化跃升，是流域协同治理面临的核心挑战。\n\n【材料二】媒体记者对某黄河支流沿岸的化工园区进行蹲点暗访。记者发现，该园区旁边的支流表面泛着一层刺鼻的化学浮油。周边果农大吐苦水：“水被污染了，我们用井水浇苹果树，结果果子长不大还落果，今年算是全赔了。”进一步暗访揭露，该园区部分企业为了躲避环保监管、压缩污水处理成本，私自铺设了隐蔽的排污暗管，专门挑在深夜或暴雨天将未经处理的高浓度废水直排入河。此外，不少老旧洗煤企业至今仍在使用被淘汰的高耗水工艺，为了维持生产，甚至打黑井疯狂盗采地下水，导致周边村落生活水井水位严重下降。\n\n【材料三】面对记者的采访，该县环保局的负责人满腹委屈：“我们天天派人去园区查，但企业偷排手段太高明，暗管埋在地下十几米，根本抓不住证据。就算好不容易逮住一家违规大户想责令停产，县领导也会出面‘打招呼’，说这是全县纳税大户，一旦关停影响今年经济指标，最后只能象征性罚点款了事。”水务局长也十分无奈：“省里要求企业必须搞节水技改，但升级设备动辄几千万，县里财政拿不出补贴，企业也不愿意自己掏腰包。而且这条河上游在省外，经常是上游排污超标流到我们这，跨省之间连个横向补偿机制都没有，出了问题板子全打在我们基层身上。”\n\n【材料四】破解黄河流域保护与发展悖论已刻不容缓。省政府近日召开黄河流域高质量发展推进会，重申必须用高水平生态保护倒逼经济高质量发展。省政府明确部署：一是要将水资源刚性约束作为不可触碰的高压线，对违规取水行为绝不手软；二是要彻底整治支流入河排污口，坚决拔除暗管，绝不让一滴超标污水进入母亲河；三是要打破行政区划壁垒，加快推动跨省、跨市流域联防联控与横向生态补偿协议的签署，形成责任共担、利益共享的治水大格局。",
+    "materials_annotated": "【材料一】陕北及关中作为黄河流域辐射区...<span style='background-color:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-weight:bold;'>➡️【题眼1：宏观矛盾点——脆弱生态与刚性约束 VS 地方对重化工税源产业的重度依赖，转型升级困难。】</span>\n\n【材料二】媒体记者蹲点暗访化工园区。<span style='background-color:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-weight:bold;'>➡️【题眼2：排污与耗水乱象——私设暗管暴雨天偷排废水；沿用高耗水老旧工艺，打黑井盗采地下水。】</span>\n\n【材料三】县环保与水务部门负责人倒苦水。<span style='background-color:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-weight:bold;'>➡️【题眼3：地方保护主义掣肘——纳税大户受县领导干预庇护，环保执法变“以罚代管”。】</span><span style='background-color:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-weight:bold;'>➡️【题眼4：资金断层与跨界推诿——企业技改缺资金；跨省流域缺乏协同治理与生态补偿机制，互相扯皮。】</span>\n\n【材料四】省政府推进会要求。<span style='background-color:#ffebee; color:#c62828; padding:2px 6px; border-radius:4px; font-weight:bold;'>➡️【题眼5：官方定调——严守水资源刚性约束、重拳整治暗管排污、推动跨区域生态补偿机制。】</span>",
+    "sub_questions": [
+        {
+            "id": "q1",
+            "type": "归纳概括",
+            "question": "问题一：请结合给定材料，归纳概括陕西黄河流域生态治理中存在的深层次问题。（15分）",
+            "requirements": "要求：要点全面，归纳精准，有条理，字数不超过250字。",
+            "scoring_points": "<div style='background-color: #fff9e6; border-left: 5px solid #ffb300; padding: 15px; border-radius: 5px; color: #333;'><strong>🎯 【采分点提示】</strong><br>1. <strong>水资源利用粗放违规：</strong>企业老旧工艺耗水量大，无序开采地下水。<br>2. <strong>偷排漏排屡禁不绝：</strong>为降成本通过暗管、雨天错峰偷排废水，污染支流。<br>3. <strong>地方保护主义掣肘：</strong>重化工税收占比大，政府干预环保执法，存在“以罚代管”。<br>4. <strong>跨域治理缺乏协同：</strong>上下游联防联控与横向生态补偿机制缺失，导致推诿扯皮。</div>",
+            "reference_answer": "<div style='background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'><div style='color: #0d47a1; font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #0d47a1; padding-bottom: 8px;'>【问题一】 标准参考答案</div><div style='color: #212529; font-size: 16px; line-height: 1.8;'>当前黄河流域治理存在的深层次问题主要表现为：<br><strong>一是无序取水，加剧资源短缺。</strong>部分企业沿用高耗水落后工艺，违规打黑井盗采地下水，违背刚性约束红线。<br><strong>二是隐蔽排污，破坏支流水质。</strong>为逃避成本，企业采用私设暗管、暴雨天错峰偷排废水等恶劣手段，加剧污染。<br><strong>三是地方保护，执法遭遇“软钉子”。</strong>受“保增长”指标影响，地方政府对纳税大户过度包庇干预执法，导致环保“以罚代管”。<br><strong>四是各自为战，协同机制不畅。</strong>跨区域生态补偿机制和联防联控缺失，导致上下游权责不清、极易替上游“背黑锅”。</div></div>"
+        },
+        {
+            "id": "q2",
+            "type": "提出对策",
+            "question": "问题二：针对材料三中反映的“企业节水改造资金难”与“跨区域上下游推诿扯皮”两个具体难题，请你提出具有操作性的解决建议。（15分）",
+            "requirements": "要求：措施精准、创新务实，严禁套用宏观模板，字数不超过300字。",
+            "scoring_points": "<div style='background-color: #fff9e6; border-left: 5px solid #ffb300; padding: 15px; border-radius: 5px; color: #333;'><strong>🎯 【采分点提示】</strong><br>1. <strong>破解资金难：</strong>推行“合同节水管理”引进第三方资金；引入绿色金融，发行转型债券或节水贷。<br>2. <strong>破解跨省扯皮：</strong>签订横向水质对赌协议（双向生态补偿机制）；开展省际交界区域联合联合巡河执法。</div>",
+            "reference_answer": "<div style='background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'><div style='color: #0d47a1; font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #0d47a1; padding-bottom: 8px;'>【问题二】 标准参考答案</div><div style='color: #212529; font-size: 16px; line-height: 1.8;'><strong>针对“企业改造资金难”：</strong><br>1. <strong>引入合同节水管理机制。</strong>引进第三方专业公司全额垫付企业设备改造资金，项目建成后，第三方从企业节约的水费红利中分期收回成本。<br>2. <strong>拓宽定向绿色金融支持。</strong>省级设立低碳转型引导基金，联合银行针对重化工企业出台“排污权质押贷款”、“节水技改贷”等定向金融工具。<br><br><strong>针对“跨区域推诿扯皮”：</strong><br>1. <strong>建立横向“水质对赌”补偿机制。</strong>打破行政壁垒，推动跨省跨市交界地市签订协议。在省界断面设监测点，水质达标下游补偿上游，水质恶化上游赔偿下游。<br>2. <strong>常态化开展联合溯源执法。</strong>联合相邻省市环保、水利部门建立联席会议，跨界河段定期开展交叉联合执法，打破信息孤岛。</div></div>"
+        },
+        {
+            "id": "q3",
+            "type": "公文写作",
+            "question": "问题三：请你代拟一份《陕西省人民政府关于进一步深化黄河流域生态保护和高质量发展的指导意见》中关于“狠抓治污降碳、倒逼产业转型”部分的段落内容。（20分）",
+            "requirements": "要求：文体为省级指导意见的节选，结构为先总述原则，再分列具体措施；对策要有高度，兼具强制力与引导性；字数500字左右。",
+            "scoring_points": "<div style='background-color: #fff9e6; border-left: 5px solid #ffb300; padding: 15px; border-radius: 5px; color: #333;'><strong>🎯 【采分点提示】</strong><br>1. <strong>文体特征：</strong>符合《指导意见》规范表达（要坚持...严禁...推进...）。<br>2. <strong>刚性约束：</strong>强调落实取水指标考核，封停违规水井。<br>3. <strong>铁腕治污：</strong>排查整治暗管，坚决破除地方保护主义干扰。<br>4. <strong>产业转型：</strong>引导煤化工产业延伸产业链，推广第三方治污模式。<br>5. <strong>逻辑层次：</strong>总分结构清晰，提纲挈领。</div>",
+            "reference_answer": "<div style='background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);'><div style='color: #0d47a1; font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #0d47a1; padding-bottom: 8px;'>【问题三】 标准参考答案</div><div style='color: #212529; font-size: 16px; line-height: 1.8;'><strong>（节选部分正文）</strong><br><br>&nbsp;&nbsp;&nbsp;&nbsp;<strong>三、狠抓治污降碳，铁腕倒逼重化工产业绿色转型</strong><br><br>&nbsp;&nbsp;&nbsp;&nbsp;全省上下必须彻底摒弃以牺牲生态换取短期增长的发展老路。要充分发挥生态环境保护的倒逼作用，严格落实水资源刚性约束，坚决打破地方保护主义掣肘，推动传统能源化工产业破茧重生。<br><br>&nbsp;&nbsp;&nbsp;&nbsp;<strong>一是严守红线，落实水资源刚性约束。</strong>将用水双控目标分解至各工业园区，开展自备水井专项清理行动，依法封闭企业违规自采黑井。对超取水红线的地区实行新增项目“限批”，倒逼企业实施高耗水工艺全面淘汰更新。<br><br>&nbsp;&nbsp;&nbsp;&nbsp;<strong>二是重拳出击，斩断违规排污黑手。</strong>深入推进入河排污口动态管控，开展重点工业园区地下暗管、雨污混排雷霆清查行动。坚决破除“保增长免处罚”的地方保护主义，对偷排大户实施停产整顿、顶格处罚，将严重违法企业法人纳入环境信用黑名单。<br><br>&nbsp;&nbsp;&nbsp;&nbsp;<strong>三是提质增效，赋能煤化工高端发展。</strong>严把环保准入门槛，坚决淘汰落后落后产能。积极设立省级绿色转型引导资金，大力推广合同节水、第三方治污模式，鼓励企业延伸煤基新材料产业链，实现由低端燃料化向高端材料化的高质量跃升。</div></div>"
+        }
+    ]
+}
