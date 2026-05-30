@@ -1,163 +1,303 @@
 import streamlit as st
 import json
 import os
+import pandas as pd
+import time
+from datetime import timedelta
 
 # ================= 1. 页面高级美化与排版设置 =================
-st.set_page_config(page_title="陕西省直遴选主观题模拟", page_icon="🏛️", layout="wide")
+st.set_page_config(page_title="陕西省直遴选备考系统", page_icon="🍏", layout="wide")
 
 st.markdown("""
     <style>
-    .reportview-container .main .block-container{ max-width: 1100px; }
-    .material-box { 
-        padding: 30px; 
-        border-radius: 12px; 
-        background-color: #fcfcfc; 
-        border: 1px solid #e2e8f0; 
-        line-height: 1.8; 
-        font-size: 16px; 
-        color: #1a202c; 
-        white-space: pre-wrap;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    /* 全局 Apple 风格背景与字体 */
+    .stApp { background-color: #F5F5F7; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+    .block-container { max-width: 1000px; padding-top: 2rem; }
+    
+    /* 圆角白色卡片效果 (通用) */
+    .apple-card {
+        background-color: #FFFFFF; border-radius: 18px; padding: 32px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04); margin-bottom: 24px; border: 1px solid #E5E5EA;
     }
-    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; height: 50px; font-size: 16px !important;}
-    .question-box { background-color: #f0f7ff; padding: 15px; border-left: 5px solid #0066cc; margin-bottom: 20px;}
+    
+    /* 主观题：材料与题目框 */
+    .material-box { 
+        padding: 24px; border-radius: 12px; background-color: #FAFAFA; 
+        border: 1px solid #E5E5EA; line-height: 1.8; font-size: 16px; color: #1D1D1F; 
+        white-space: pre-wrap; margin-bottom: 20px;
+    }
+    .question-box { background-color: #F0F8FF; padding: 18px; border-radius: 12px; border-left: 5px solid #007AFF; margin-bottom: 20px; color: #1D1D1F;}
+    
+    /* 客观题：题干与解析 */
+    .q-title { font-size: 20px; font-weight: 600; color: #1D1D1F; line-height: 1.5; margin-bottom: 24px;}
+    .explanation-box {
+        background-color: #F5F5F7; border-radius: 12px; padding: 20px;
+        margin-top: 20px; color: #333333; font-size: 15px; line-height: 1.6; border-left: 4px solid #FF3B30;
+    }
+    
+    /* ================= 新增：选项大按钮化 CSS ================= */
+    div[data-testid="stButton"] > button {
+        height: auto;
+        min-height: 64px; /* 增加按钮高度 */
+        padding: 16px 24px;
+        justify-content: flex-start; /* 内容左对齐 */
+        text-align: left;
+        border-radius: 14px;
+        border: 1px solid #E5E5EA;
+        background-color: #FFFFFF;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        transition: all 0.2s ease;
+        margin-bottom: 12px;
+        width: 100%;
+    }
+    div[data-testid="stButton"] > button div[data-testid="stMarkdownContainer"] p {
+        font-size: 17px; /* 选项字体变大 */
+        color: #1D1D1F;
+        text-align: left;
+        white-space: normal; /* 允许长文本自动换行 */
+        line-height: 1.5;
+        margin: 0;
+    }
+    /* 悬停效果 */
+    div[data-testid="stButton"] > button:hover {
+        border-color: #007AFF;
+        background-color: #F0F8FF;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.1);
+    }
+    div[data-testid="stButton"] > button:hover div[data-testid="stMarkdownContainer"] p {
+        color: #007AFF;
+    }
+    /* 导航按钮（上一题/下一题）特殊处理 */
+    div[data-testid="stButton"] > button[kind="primary"] {
+        justify-content: center;
+        background-color: #007AFF;
+        border: none;
+        min-height: 50px;
+        box-shadow: none;
+    }
+    div[data-testid="stButton"] > button[kind="primary"] div[data-testid="stMarkdownContainer"] p {
+        color: #FFFFFF;
+        text-align: center;
+        font-weight: 600;
+    }
+    div[data-testid="stButton"] > button[kind="primary"]:hover {
+        background-color: #0056b3;
+        transform: none;
+    }
+    
+    /* 计时器样式 */
+    .timer-text { font-size: 24px; font-weight: bold; color: #FF3B30; text-align: center; margin-bottom: 20px; font-variant-numeric: tabular-nums;}
     </style>
     """, unsafe_allow_html=True)
 
-# ================= 2. 核心功能：读取多层级题库 =================
+# ================= 2. 数据加载函数 =================
 DATA_DIR = "data"
+OBJ_DIR = os.path.join(DATA_DIR, "客观题")
+SUBJ_DIR = os.path.join(DATA_DIR, "主观题")
 
 @st.cache_data
-def get_categories():
-    """扫描 data 文件夹下的所有子文件夹，作为考点大类"""
-    if not os.path.exists(DATA_DIR):
-        return []
-    categories = [d for d in os.listdir(DATA_DIR) if os.path.isdir(os.path.join(DATA_DIR, d))]
-    return sorted(categories)
+def get_obj_modules():
+    if not os.path.exists(OBJ_DIR): return []
+    return sorted([f.replace('.json', '') for f in os.listdir(OBJ_DIR) if f.endswith('.json')])
 
 @st.cache_data
-def load_scenarios_from_folder(category_name):
-    """读取某个大类文件夹下的所有单题(大题) JSON 文件"""
-    category_path = os.path.join(DATA_DIR, category_name)
+def load_obj_questions(module_name):
+    file_path = os.path.join(OBJ_DIR, f"{module_name}.json")
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+@st.cache_data
+def get_subj_categories():
+    if not os.path.exists(SUBJ_DIR): return []
+    return sorted([d for d in os.listdir(SUBJ_DIR) if os.path.isdir(os.path.join(SUBJ_DIR, d))])
+
+@st.cache_data
+def load_subj_scenarios(category_name):
+    category_path = os.path.join(SUBJ_DIR, category_name)
     scenarios = []
-    
     if os.path.exists(category_path):
         files = sorted([f for f in os.listdir(category_path) if f.endswith('.json')])
         for file_name in files:
             file_path = os.path.join(category_path, file_name)
-            try:
-                with open(file_path, 'r', encoding='utf-8-sig') as f:
-                    q_data = json.load(f)
-                    scenarios.append(q_data)
-            except Exception as e:
-                st.error(f"⚠️ 读取文件 {file_name} 时出错: {e}")
+            with open(file_path, 'r', encoding='utf-8-sig') as f:
+                scenarios.append(json.load(f))
     return scenarios
 
-# ================= 3. 侧边栏：大类与题目导航 =================
+# ================= 3. 状态管理初始化 =================
+if 'obj_idx' not in st.session_state: st.session_state.obj_idx = 0
+if 'obj_wrong' not in st.session_state: st.session_state.obj_wrong = []
+if 'obj_show_exp' not in st.session_state: st.session_state.obj_show_exp = False
+if 'obj_last_wrong_ans' not in st.session_state: st.session_state.obj_last_wrong_ans = "" # 记录错选的具体选项
+if 'start_time' not in st.session_state: st.session_state.start_time = time.time()
+
+if 'subj_step' not in st.session_state: st.session_state.subj_step = 0
+if 'subj_last_id' not in st.session_state: st.session_state.subj_last_id = None
+
+# ================= 4. 侧边栏与全局导航 =================
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Emblem_of_Shaanxi.svg/120px-Emblem_of_Shaanxi.svg.png", width=80)
-    st.title("📚 遴选全真题库")
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Emblem_of_Shaanxi.svg/120px-Emblem_of_Shaanxi.svg.png", width=60)
+    st.title("🎯 遴选全能题库")
     
-    categories = get_categories()
-    
-    if not categories:
-        st.error(f"⚠️ 找不到题库！请确保建好了 '{DATA_DIR}' 文件夹及其子分类文件夹。")
-        st.stop()
+    app_mode = st.radio("切换学习模式", ["📚 客观题专项演练", "🏛️ 主观题深度剖析"], label_visibility="collapsed")
+    st.divider()
 
-    # 下拉菜单1：选择大类
-    selected_category = st.selectbox("📂 选择考点大类", categories)
-    
-    # 动态加载大题
-    scenarios = load_scenarios_from_folder(selected_category)
-    
-    if not scenarios:
-        st.warning("该分类下暂无题目，请放入JSON文件。")
-        st.stop()
+# ================= 5. 分支逻辑：客观题模式 =================
+if app_mode == "📚 客观题专项演练":
+    with st.sidebar:
+        obj_modules = get_obj_modules()
+        if not obj_modules:
+            st.warning(f"请在 {OBJ_DIR} 文件夹下放入 JSON 题库")
+            st.stop()
+            
+        selected_module = st.selectbox("📂 选择演练模块", obj_modules)
         
-    # 下拉菜单2：选择大题场景
-    scenario_titles = [f"{s.get('title', '未命名题目')}" for s in scenarios]
-    selected_s_name = st.selectbox("📝 选择要演练的大题", scenario_titles)
-    
-    selected_s_idx = scenario_titles.index(selected_s_name)
-    current_scenario = scenarios[selected_s_idx]
-
-# ================= 4. 状态管理 =================
-# 当切换大题时，自动将步骤重置为0
-if 'last_seen_s' not in st.session_state or st.session_state.last_seen_s != current_scenario.get('id'):
-    st.session_state.step = 0
-    st.session_state.last_seen_s = current_scenario.get('id', 'temp_id')
-
-def go_next():
-    if st.session_state.step < 3:
-        st.session_state.step += 1
-
-def go_reset():
-    st.session_state.step = 0
-
-# ================= 5. 右侧主界面渲染 =================
-st.title(f"🏛️ 专项突破：{selected_category}")
-st.subheader(f"📖 {current_scenario.get('title', '未命名')}")
-st.divider()
-
-steps_guide = ["1. 深度剖析长材料", "2. 穿透材料抓题眼", "3. 解析核心采分点", "4. 拆解标准参考答案"]
-st.progress((st.session_state.step + 1) * 25, text=f"**当前复习状态：{steps_guide[st.session_state.step]}**")
-st.markdown("---")
-
-# 获取子题目列表
-sub_questions = current_scenario.get('sub_questions', [])
-
-# ----------------- 步骤 0 & 1：展示材料 -----------------
-if st.session_state.step == 0:
-    st.markdown("### 📄 给定材料 (全真模拟)")
-    st.markdown(f"<div class='material-box'>{current_scenario.get('materials_plain', '')}</div>", unsafe_allow_html=True)
-    
-elif st.session_state.step == 1:
-    st.markdown("### 🔍 题眼会诊 (沙里淘金思维训练)")
-    st.markdown(f"<div class='material-box'>{current_scenario.get('materials_annotated', '')}</div>", unsafe_allow_html=True)
-
-# ----------------- 步骤 2 & 3：使用 Tabs 展示多道小题 -----------------
-elif st.session_state.step >= 2:
-    if st.session_state.step == 2:
-        st.markdown("### 💯 阅卷老干部的核心采分点")
-    else:
-        st.markdown("### 🏆 陕西省直机关标准规范参考答案")
+        st.divider()
+        elapsed = time.time() - st.session_state.start_time
+        remaining = max(0, 3600 - elapsed)
+        st.markdown(f"<div class='timer-text'>⏱ {str(timedelta(seconds=int(remaining)))}</div>", unsafe_allow_html=True)
         
-    # 如果没有小题数据，给出提示
-    if not sub_questions:
-        st.warning("本题没有配置子问题 (sub_questions)。")
-    else:
-        # 动态生成标签页 (例如：问题一：归纳概括, 问题二：提出对策...)
-        tab_titles = [f"题 {i+1}：{sq.get('type', '主观题')}" for i, sq in enumerate(sub_questions)]
-        tabs = st.tabs(tab_titles)
-        
-        # 遍历每一个标签页，往里面填充对应小题的内容
-        for i, tab in enumerate(tabs):
-            sq = sub_questions[i]
-            with tab:
-                # 顶部的题目要求框
-                st.markdown(f"""
-                <div class='question-box'>
-                    <strong>【题目】</strong>{sq.get('question', '')}<br><br>
-                    <strong>【要求】</strong>{sq.get('requirements', '')}
-                </div>
-                """, unsafe_allow_html=True)
+        st.divider()
+        st.markdown("### 📝 错题记忆系统")
+        st.metric(label="已收集错题", value=f"{len(st.session_state.obj_wrong)} 道")
+        if st.session_state.obj_wrong:
+            df_wrong = pd.DataFrame(st.session_state.obj_wrong)
+            st.download_button("⬇️ 导出错题本 (CSV)", data=df_wrong.to_csv(index=False).encode('utf-8-sig'), file_name="客观错题本.csv", mime="text/csv", type="primary")
+
+    if 'last_obj_mod' not in st.session_state or st.session_state.last_obj_mod != selected_module:
+        st.session_state.obj_idx = 0
+        st.session_state.obj_show_exp = False
+        st.session_state.last_obj_mod = selected_module
+
+    questions = load_obj_questions(selected_module)
+    if not questions: st.stop()
+
+    total_q = len(questions)
+    q_data = questions[st.session_state.obj_idx]
+    q_id = q_data.get('id', str(st.session_state.obj_idx))
+    correct_ans = q_data['correct_answer']
+
+    st.title(f"📚 {selected_module}")
+    st.markdown(f"<span style='color:#86868B; font-size:14px;'>进度：{st.session_state.obj_idx + 1} / {total_q}</span>", unsafe_allow_html=True)
+    st.progress((st.session_state.obj_idx + 1) / total_q)
+
+    # ================= 核心重构：题目与选项卡片 =================
+    st.markdown("<div class='apple-card'>", unsafe_allow_html=True)
+    st.markdown(f"<div class='q-title'>{st.session_state.obj_idx + 1}. {q_data['question']}</div>", unsafe_allow_html=True)
+    
+    options = q_data['options']
+    
+    # 将选项全部渲染为大型 Button
+    for opt in options:
+        # 当点击任意选项按钮时触发逻辑
+        if st.button(opt, key=f"btn_{q_id}_{opt}"):
+            is_correct = opt.startswith(correct_ans)
+            
+            if is_correct:
+                # 选对：直接进入下一题
+                if st.session_state.obj_idx < total_q - 1:
+                    st.session_state.obj_idx += 1
+                    st.session_state.obj_show_exp = False
+                else:
+                    st.toast("🎉 恭喜你，本模块已全部刷完！", icon="👏")
+                    st.session_state.obj_show_exp = False
+                st.rerun()
                 
-                # 根据当前步骤展示采分点或完整答案
-                if st.session_state.step == 2:
-                    st.markdown(sq.get('scoring_points', '暂无采分点说明'), unsafe_allow_html=True)
-                elif st.session_state.step == 3:
-                    st.markdown(sq.get('reference_answer', '暂无参考答案'), unsafe_allow_html=True)
+            else:
+                # 选错：停留当前页面，开启解析显示，并加入错题本
+                st.session_state.obj_show_exp = True
+                st.session_state.obj_last_wrong_ans = opt
+                
+                if not any(wq['id'] == q_id for wq in st.session_state.obj_wrong):
+                    st.session_state.obj_wrong.append({
+                        "id": q_id, "模块": selected_module, 
+                        "题目": q_data['question'], "你的答案": opt, 
+                        "正确答案": correct_ans, "解析": q_data['explanation']
+                    })
+                st.rerun()
 
-st.markdown("---")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# ================= 6. 交互控制按键 =================
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    if st.session_state.step == 0:
-        st.button("🔍 第一步：开启『题眼红字高亮』", on_click=go_next, type="primary")
-    elif st.session_state.step == 1:
-        st.button("💡 第二步：查看『三道小题采分点』", on_click=go_next, type="primary")
-    elif st.session_state.step == 2:
-        st.button("印发公文 📄 第三步：查看『完整参考答案』", on_click=go_next, type="primary")
-    elif st.session_state.step == 3:
-        st.button("🔄 重新推演本大题", on_click=go_reset)
+    # 解析展示 (选错时出现)
+    if st.session_state.obj_show_exp:
+        st.error(f"❌ 刚才选错了（你的答案：{st.session_state.obj_last_wrong_ans[:1]}）。正确答案是：**{correct_ans}**")
+        st.markdown(f"<div class='explanation-box'><strong>💡 深度解析：</strong><br><br>{q_data['explanation']}</div>", unsafe_allow_html=True)
+
+    # 导航控制
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.session_state.obj_idx > 0:
+            if st.button("⬅️ 上一题", use_container_width=True):
+                st.session_state.obj_idx -= 1
+                st.session_state.obj_show_exp = False
+                st.rerun()
+
+    with col3:
+        # 仅当答错停留在当前页面时，才显示"下一题"按钮，供她看完解析后手动翻页
+        if st.session_state.obj_show_exp and st.session_state.obj_idx < total_q - 1:
+            if st.button("下一题 ➡️", type="primary", use_container_width=True):
+                st.session_state.obj_idx += 1
+                st.session_state.obj_show_exp = False
+                st.rerun()
+
+# ================= 6. 分支逻辑：主观题模式 =================
+elif app_mode == "🏛️ 主观题深度剖析":
+    with st.sidebar:
+        subj_categories = get_subj_categories()
+        if not subj_categories:
+            st.warning(f"请在 {SUBJ_DIR} 文件夹下建立分类并放入大题 JSON 文件")
+            st.stop()
+            
+        selected_category = st.selectbox("📂 选择考点大类", subj_categories)
+        scenarios = load_subj_scenarios(selected_category)
+        if not scenarios: st.stop()
+            
+        scenario_titles = [s.get('title', '未命名题目') for s in scenarios]
+        selected_s_name = st.selectbox("📝 选择大题", scenario_titles)
+        current_scenario = scenarios[scenario_titles.index(selected_s_name)]
+
+    if st.session_state.subj_last_id != current_scenario.get('id'):
+        st.session_state.subj_step = 0
+        st.session_state.subj_last_id = current_scenario.get('id')
+
+    def go_next_subj():
+        if st.session_state.subj_step < 3: st.session_state.subj_step += 1
+    def go_reset_subj(): st.session_state.subj_step = 0
+
+    st.title(f"🏛️ 专项突破：{selected_category}")
+    st.subheader(f"📖 {current_scenario.get('title', '未命名')}")
+    
+    steps_guide = ["1. 深度剖析长材料", "2. 穿透材料抓题眼", "3. 解析核心采分点", "4. 拆解标准答案"]
+    st.progress((st.session_state.subj_step + 1) * 25, text=f"**当前状态：{steps_guide[st.session_state.subj_step]}**")
+
+    sub_questions = current_scenario.get('sub_questions', [])
+
+    st.markdown("<div class='apple-card'>", unsafe_allow_html=True)
+    if st.session_state.subj_step == 0:
+        st.markdown("### 📄 给定材料 (全真模拟)")
+        st.markdown(f"<div class='material-box'>{current_scenario.get('materials_plain', '')}</div>", unsafe_allow_html=True)
+    elif st.session_state.subj_step == 1:
+        st.markdown("### 🔍 题眼会诊 (沙里淘金思维训练)")
+        st.markdown(f"<div class='material-box'>{current_scenario.get('materials_annotated', '')}</div>", unsafe_allow_html=True)
+    elif st.session_state.subj_step >= 2:
+        st.markdown("### 💯 核心采分点" if st.session_state.subj_step == 2 else "### 🏆 标准规范参考答案")
+        if not sub_questions:
+            st.warning("本题没有配置子问题。")
+        else:
+            tabs = st.tabs([f"题 {i+1}：{sq.get('type', '主观题')}" for i, sq in enumerate(sub_questions)])
+            for i, tab in enumerate(tabs):
+                sq = sub_questions[i]
+                with tab:
+                    st.markdown(f"<div class='question-box'><strong>【题目】</strong>{sq.get('question', '')}<br><br><strong>【要求】</strong>{sq.get('requirements', '')}</div>", unsafe_allow_html=True)
+                    if st.session_state.subj_step == 2: st.markdown(sq.get('scoring_points', '暂无采分点'), unsafe_allow_html=True)
+                    elif st.session_state.subj_step == 3: st.markdown(sq.get('reference_answer', '暂无答案'), unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.session_state.subj_step == 0: st.button("🔍 第一步：开启『题眼红字高亮』", on_click=go_next_subj, type="primary", use_container_width=True)
+        elif st.session_state.subj_step == 1: st.button("💡 第二步：查看『采分点』", on_click=go_next_subj, type="primary", use_container_width=True)
+        elif st.session_state.subj_step == 2: st.button("📄 第三步：查看『完整参考答案』", on_click=go_next_subj, type="primary", use_container_width=True)
+        elif st.session_state.subj_step == 3: st.button("🔄 重新推演本大题", on_click=go_reset_subj, use_container_width=True)
