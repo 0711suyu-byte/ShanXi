@@ -35,12 +35,12 @@ st.markdown("""
         margin-top: 20px; color: #333333; font-size: 15px; line-height: 1.6; border-left: 4px solid #FF3B30;
     }
     
-    /* ================= 新增：选项大按钮化 CSS ================= */
+    /* ================= 选项大按钮化 CSS ================= */
     div[data-testid="stButton"] > button {
         height: auto;
-        min-height: 64px; /* 增加按钮高度 */
+        min-height: 64px; 
         padding: 16px 24px;
-        justify-content: flex-start; /* 内容左对齐 */
+        justify-content: flex-start; 
         text-align: left;
         border-radius: 14px;
         border: 1px solid #E5E5EA;
@@ -51,10 +51,10 @@ st.markdown("""
         width: 100%;
     }
     div[data-testid="stButton"] > button div[data-testid="stMarkdownContainer"] p {
-        font-size: 17px; /* 选项字体变大 */
+        font-size: 17px; 
         color: #1D1D1F;
         text-align: left;
-        white-space: normal; /* 允许长文本自动换行 */
+        white-space: normal; 
         line-height: 1.5;
         margin: 0;
     }
@@ -68,7 +68,7 @@ st.markdown("""
     div[data-testid="stButton"] > button:hover div[data-testid="stMarkdownContainer"] p {
         color: #007AFF;
     }
-    /* 导航按钮（上一题/下一题）特殊处理 */
+    /* 导航按钮特殊处理 */
     div[data-testid="stButton"] > button[kind="primary"] {
         justify-content: center;
         background-color: #007AFF;
@@ -91,24 +91,35 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ================= 2. 数据加载函数 =================
+# ================= 2. 数据加载函数 (全新层级结构) =================
 DATA_DIR = "data"
 OBJ_DIR = os.path.join(DATA_DIR, "客观题")
 SUBJ_DIR = os.path.join(DATA_DIR, "主观题")
 
+# --- 客观题双层加载逻辑 ---
 @st.cache_data
-def get_obj_modules():
+def get_obj_categories():
+    """获取客观题的大类文件夹"""
     if not os.path.exists(OBJ_DIR): return []
-    return sorted([f.replace('.json', '') for f in os.listdir(OBJ_DIR) if f.endswith('.json')])
+    return sorted([d for d in os.listdir(OBJ_DIR) if os.path.isdir(os.path.join(OBJ_DIR, d))])
 
 @st.cache_data
-def load_obj_questions(module_name):
-    file_path = os.path.join(OBJ_DIR, f"{module_name}.json")
+def get_obj_modules(category_name):
+    """获取某个大类文件夹下的所有 JSON 试卷"""
+    category_path = os.path.join(OBJ_DIR, category_name)
+    if not os.path.exists(category_path): return []
+    return sorted([f.replace('.json', '') for f in os.listdir(category_path) if f.endswith('.json')])
+
+@st.cache_data
+def load_obj_questions(category_name, module_name):
+    """加载具体的客观题 JSON 数据"""
+    file_path = os.path.join(OBJ_DIR, category_name, f"{module_name}.json")
     if os.path.exists(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     return []
 
+# --- 主观题双层加载逻辑 ---
 @st.cache_data
 def get_subj_categories():
     if not os.path.exists(SUBJ_DIR): return []
@@ -130,7 +141,7 @@ def load_subj_scenarios(category_name):
 if 'obj_idx' not in st.session_state: st.session_state.obj_idx = 0
 if 'obj_wrong' not in st.session_state: st.session_state.obj_wrong = []
 if 'obj_show_exp' not in st.session_state: st.session_state.obj_show_exp = False
-if 'obj_last_wrong_ans' not in st.session_state: st.session_state.obj_last_wrong_ans = "" # 记录错选的具体选项
+if 'obj_last_wrong_ans' not in st.session_state: st.session_state.obj_last_wrong_ans = "" 
 if 'start_time' not in st.session_state: st.session_state.start_time = time.time()
 
 if 'subj_step' not in st.session_state: st.session_state.subj_step = 0
@@ -147,18 +158,29 @@ with st.sidebar:
 # ================= 5. 分支逻辑：客观题模式 =================
 if app_mode == "📚 客观题专项演练":
     with st.sidebar:
-        obj_modules = get_obj_modules()
-        if not obj_modules:
-            st.warning(f"请在 {OBJ_DIR} 文件夹下放入 JSON 题库")
+        obj_categories = get_obj_categories()
+        if not obj_categories:
+            st.warning(f"请在 {OBJ_DIR} 文件夹下建立分类文件夹（如'模块1'）并放入 JSON 题库")
             st.stop()
             
-        selected_module = st.selectbox("📂 选择演练模块", obj_modules)
+        # 第一层：选择考点大类
+        selected_category = st.selectbox("📁 选择考点大类", obj_categories)
         
+        obj_modules = get_obj_modules(selected_category)
+        if not obj_modules:
+            st.warning("该分类下暂无试卷文件，请放入 JSON 文件。")
+            st.stop()
+            
+        # 第二层：选择具体试卷
+        selected_module = st.selectbox("📄 选择演练试卷", obj_modules)
+        
+        # 倒计时模块 (由3600秒减至1800秒，即30分钟)
         st.divider()
         elapsed = time.time() - st.session_state.start_time
-        remaining = max(0, 3600 - elapsed)
+        remaining = max(0, 1800 - elapsed) # <--- 修改此处可以调整倒计时总秒数
         st.markdown(f"<div class='timer-text'>⏱ {str(timedelta(seconds=int(remaining)))}</div>", unsafe_allow_html=True)
         
+        # 错题本模块
         st.divider()
         st.markdown("### 📝 错题记忆系统")
         st.metric(label="已收集错题", value=f"{len(st.session_state.obj_wrong)} 道")
@@ -166,12 +188,17 @@ if app_mode == "📚 客观题专项演练":
             df_wrong = pd.DataFrame(st.session_state.obj_wrong)
             st.download_button("⬇️ 导出错题本 (CSV)", data=df_wrong.to_csv(index=False).encode('utf-8-sig'), file_name="客观错题本.csv", mime="text/csv", type="primary")
 
-    if 'last_obj_mod' not in st.session_state or st.session_state.last_obj_mod != selected_module:
+    # 检测是否切换了试卷，如果切换了，重置进度和【倒计时】
+    if ('last_obj_cat' not in st.session_state or st.session_state.last_obj_cat != selected_category or 
+        'last_obj_mod' not in st.session_state or st.session_state.last_obj_mod != selected_module):
         st.session_state.obj_idx = 0
         st.session_state.obj_show_exp = False
+        st.session_state.last_obj_cat = selected_category
         st.session_state.last_obj_mod = selected_module
+        st.session_state.start_time = time.time() # 自动重置倒计时
+        st.rerun() # 刷新页面应用重置
 
-    questions = load_obj_questions(selected_module)
+    questions = load_obj_questions(selected_category, selected_module)
     if not questions: st.stop()
 
     total_q = len(questions)
@@ -183,49 +210,50 @@ if app_mode == "📚 客观题专项演练":
     st.markdown(f"<span style='color:#86868B; font-size:14px;'>进度：{st.session_state.obj_idx + 1} / {total_q}</span>", unsafe_allow_html=True)
     st.progress((st.session_state.obj_idx + 1) / total_q)
 
-    # ================= 核心重构：题目与选项卡片 =================
+    # 题目与选项卡片
     st.markdown("<div class='apple-card'>", unsafe_allow_html=True)
     st.markdown(f"<div class='q-title'>{st.session_state.obj_idx + 1}. {q_data['question']}</div>", unsafe_allow_html=True)
     
     options = q_data['options']
     
-    # 将选项全部渲染为大型 Button
     for opt in options:
-        # 当点击任意选项按钮时触发逻辑
         if st.button(opt, key=f"btn_{q_id}_{opt}"):
             is_correct = opt.startswith(correct_ans)
             
             if is_correct:
-                # 选对：直接进入下一题
                 if st.session_state.obj_idx < total_q - 1:
                     st.session_state.obj_idx += 1
                     st.session_state.obj_show_exp = False
                 else:
-                    st.toast("🎉 恭喜你，本模块已全部刷完！", icon="👏")
+                    st.toast("🎉 恭喜你，本套试卷已全部刷完！", icon="👏")
                     st.session_state.obj_show_exp = False
                 st.rerun()
                 
             else:
-                # 选错：停留当前页面，开启解析显示，并加入错题本
                 st.session_state.obj_show_exp = True
                 st.session_state.obj_last_wrong_ans = opt
                 
+                # 记录错题，增加“大类”字段
                 if not any(wq['id'] == q_id for wq in st.session_state.obj_wrong):
                     st.session_state.obj_wrong.append({
-                        "id": q_id, "模块": selected_module, 
-                        "题目": q_data['question'], "你的答案": opt, 
-                        "正确答案": correct_ans, "解析": q_data['explanation']
+                        "id": q_id, 
+                        "模块分类": selected_category,
+                        "试卷名称": selected_module, 
+                        "题目": q_data['question'], 
+                        "你的答案": opt, 
+                        "正确答案": correct_ans, 
+                        "解析": q_data['explanation']
                     })
                 st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 解析展示 (选错时出现)
+    # 错题解析展示
     if st.session_state.obj_show_exp:
         st.error(f"❌ 刚才选错了（你的答案：{st.session_state.obj_last_wrong_ans[:1]}）。正确答案是：**{correct_ans}**")
         st.markdown(f"<div class='explanation-box'><strong>💡 深度解析：</strong><br><br>{q_data['explanation']}</div>", unsafe_allow_html=True)
 
-    # 导航控制
+    # 底部导航控制
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         if st.session_state.obj_idx > 0:
@@ -235,7 +263,6 @@ if app_mode == "📚 客观题专项演练":
                 st.rerun()
 
     with col3:
-        # 仅当答错停留在当前页面时，才显示"下一题"按钮，供她看完解析后手动翻页
         if st.session_state.obj_show_exp and st.session_state.obj_idx < total_q - 1:
             if st.button("下一题 ➡️", type="primary", use_container_width=True):
                 st.session_state.obj_idx += 1
