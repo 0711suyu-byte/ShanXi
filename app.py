@@ -3,6 +3,7 @@ import json
 import os
 import pandas as pd
 import time
+import random  # <--- 新增：用于打乱题目顺序
 from datetime import timedelta
 
 # ================= 1. 页面高级美化与排版设置 =================
@@ -143,6 +144,7 @@ if 'obj_wrong' not in st.session_state: st.session_state.obj_wrong = []
 if 'obj_show_exp' not in st.session_state: st.session_state.obj_show_exp = False
 if 'obj_last_wrong_ans' not in st.session_state: st.session_state.obj_last_wrong_ans = "" 
 if 'start_time' not in st.session_state: st.session_state.start_time = time.time()
+if 'current_questions' not in st.session_state: st.session_state.current_questions = []
 
 if 'subj_step' not in st.session_state: st.session_state.subj_step = 0
 if 'subj_last_id' not in st.session_state: st.session_state.subj_last_id = None
@@ -174,10 +176,10 @@ if app_mode == "📚 客观题专项演练":
         # 第二层：选择具体试卷
         selected_module = st.selectbox("📄 选择演练试卷", obj_modules)
         
-        # 倒计时模块 (由3600秒减至1800秒，即30分钟)
+        # 倒计时模块 (修改为 480 秒，即 8 分钟)
         st.divider()
         elapsed = time.time() - st.session_state.start_time
-        remaining = max(0, 1800 - elapsed) # <--- 修改此处可以调整倒计时总秒数
+        remaining = max(0, 480 - elapsed)
         st.markdown(f"<div class='timer-text'>⏱ {str(timedelta(seconds=int(remaining)))}</div>", unsafe_allow_html=True)
         
         # 错题本模块
@@ -188,17 +190,25 @@ if app_mode == "📚 客观题专项演练":
             df_wrong = pd.DataFrame(st.session_state.obj_wrong)
             st.download_button("⬇️ 导出错题本 (CSV)", data=df_wrong.to_csv(index=False).encode('utf-8-sig'), file_name="客观错题本.csv", mime="text/csv", type="primary")
 
-    # 检测是否切换了试卷，如果切换了，重置进度和【倒计时】
+    # 检测是否切换了试卷，如果切换了，重置进度、【倒计时】并【随机打乱题目】
     if ('last_obj_cat' not in st.session_state or st.session_state.last_obj_cat != selected_category or 
         'last_obj_mod' not in st.session_state or st.session_state.last_obj_mod != selected_module):
+        
         st.session_state.obj_idx = 0
         st.session_state.obj_show_exp = False
         st.session_state.last_obj_cat = selected_category
         st.session_state.last_obj_mod = selected_module
         st.session_state.start_time = time.time() # 自动重置倒计时
+        
+        # 加载并随机打乱题目顺序
+        raw_questions = load_obj_questions(selected_category, selected_module)
+        shuffled_qs = list(raw_questions) # 拷贝一份，避免修改原数据缓存
+        random.shuffle(shuffled_qs)
+        st.session_state.current_questions = shuffled_qs
+        
         st.rerun() # 刷新页面应用重置
 
-    questions = load_obj_questions(selected_category, selected_module)
+    questions = st.session_state.get('current_questions', [])
     if not questions: st.stop()
 
     total_q = len(questions)
